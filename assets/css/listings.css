@@ -1,0 +1,228 @@
+/* ==========================================================================
+   TCG Dokan — Listings styles
+   ========================================================================== */
+
+/* Buy Box
+   ========================================================================== */
+
+.tcg-buy-box {
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 24px;
+	margin-bottom: 24px;
+	background: #fff;
+}
+
+.tcg-buy-box--empty {
+	text-align: center;
+	color: #666;
+	padding: 40px 24px;
+}
+
+.tcg-buy-box__unavailable {
+	font-size: 1.1em;
+	margin: 0;
+}
+
+.tcg-buy-box__price {
+	font-size: 1.8em;
+	font-weight: 700;
+	color: #1a1a1a;
+	margin-bottom: 12px;
+}
+
+.tcg-buy-box__price .woocommerce-Price-amount {
+	font-size: inherit;
+}
+
+.tcg-buy-box__badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+.tcg-buy-box__vendor {
+	margin-bottom: 8px;
+	color: #555;
+}
+
+.tcg-buy-box__vendor a {
+	color: #0073aa;
+	text-decoration: none;
+	font-weight: 600;
+}
+
+.tcg-buy-box__vendor a:hover {
+	text-decoration: underline;
+}
+
+.tcg-buy-box__stock {
+	margin-bottom: 16px;
+	color: #388e3c;
+	font-size: 0.9em;
+}
+
+.tcg-buy-box__actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+/* Badges
+   ========================================================================== */
+
+.tcg-badge {
+	display: inline-block;
+	padding: 3px 10px;
+	border-radius: 4px;
+	font-size: 0.8em;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.tcg-badge--condition {
+	background: #e3f2fd;
+	color: #1565c0;
+}
+
+.tcg-badge--printing {
+	background: #fff3e0;
+	color: #e65100;
+}
+
+.tcg-badge--language {
+	background: #e8f5e9;
+	color: #2e7d32;
+}
+
+/* Quantity input
+   ========================================================================== */
+
+.tcg-qty-input {
+	width: 64px;
+	padding: 8px;
+	text-align: center;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 0.95em;
+}
+
+.tcg-qty-input:focus {
+	border-color: #0073aa;
+	outline: none;
+}
+
+/* Add to cart button states
+   ========================================================================== */
+
+.tcg-add-to-cart {
+	cursor: pointer;
+	transition: background-color 0.2s, opacity 0.2s;
+}
+
+.tcg-add-to-cart.tcg-loading {
+	opacity: 0.7;
+	cursor: wait;
+}
+
+.tcg-add-to-cart.tcg-added {
+	background-color: #388e3c !important;
+	border-color: #388e3c !important;
+	color: #fff !important;
+}
+
+/* Vendors table
+   ========================================================================== */
+
+.tcg-vendors-section {
+	margin-top: 32px;
+}
+
+.tcg-vendors-section__title {
+	font-size: 1.2em;
+	margin-bottom: 16px;
+}
+
+.tcg-vendors-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9em;
+}
+
+.tcg-vendors-table thead th {
+	background: #f5f5f5;
+	padding: 10px 12px;
+	text-align: left;
+	font-weight: 600;
+	border-bottom: 2px solid #e0e0e0;
+	white-space: nowrap;
+}
+
+.tcg-vendors-table tbody td {
+	padding: 10px 12px;
+	border-bottom: 1px solid #eee;
+	vertical-align: middle;
+}
+
+.tcg-vendors-table tbody tr:hover {
+	background: #fafafa;
+}
+
+.tcg-vendors-table .tcg-qty-input {
+	width: 56px;
+	padding: 6px;
+}
+
+.tcg-vendors-table .tcg-add-to-cart {
+	white-space: nowrap;
+	padding: 6px 14px;
+	font-size: 0.85em;
+}
+
+/* Responsive: card layout on mobile
+   ========================================================================== */
+
+@media ( max-width: 768px ) {
+	.tcg-vendors-table thead {
+		display: none;
+	}
+
+	.tcg-vendors-table tbody tr {
+		display: block;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		margin-bottom: 12px;
+		padding: 12px;
+		background: #fff;
+	}
+
+	.tcg-vendors-table tbody td {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 6px 0;
+		border-bottom: none;
+	}
+
+	.tcg-vendors-table tbody td::before {
+		content: attr(data-label);
+		font-weight: 600;
+		margin-right: 12px;
+		flex-shrink: 0;
+	}
+
+	.tcg-vendors-table tbody td:last-child {
+		justify-content: flex-end;
+		padding-top: 10px;
+	}
+
+	.tcg-buy-box__actions {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.tcg-buy-box__actions .tcg-qty-input {
+		width: 100%;
+	}
+}

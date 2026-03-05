@@ -10,6 +10,27 @@ class TCG_Dokan_Display {
 	public function __construct() {
 		add_action( 'woocommerce_single_product_summary', [ $this, 'render_card_stats' ], 25 );
 		add_action( 'woocommerce_single_product_summary', [ $this, 'render_ref_prices' ], 35 );
+		add_action( 'template_redirect', [ $this, 'redirect_linked_products' ] );
+	}
+
+	/**
+	 * 301 redirect from WooCommerce product pages to their linked ygo_card page.
+	 */
+	public function redirect_linked_products() {
+		if ( ! is_singular( 'product' ) ) {
+			return;
+		}
+
+		$card_id = (int) get_post_meta( get_the_ID(), '_linked_ygo_card', true );
+		if ( ! $card_id ) {
+			return;
+		}
+
+		$card_url = get_permalink( $card_id );
+		if ( $card_url ) {
+			wp_redirect( $card_url, 301 );
+			exit;
+		}
 	}
 
 	/**

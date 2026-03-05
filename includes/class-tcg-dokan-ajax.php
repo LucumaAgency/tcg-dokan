@@ -10,6 +10,8 @@ class TCG_Dokan_Ajax {
 	public function __construct() {
 		add_action( 'wp_ajax_tcg_search_ygo_cards', [ $this, 'search_cards' ] );
 		add_action( 'wp_ajax_tcg_get_ygo_card_data', [ $this, 'get_card_data' ] );
+		add_action( 'wp_ajax_tcg_add_to_cart', [ $this, 'add_to_cart' ] );
+		add_action( 'wp_ajax_nopriv_tcg_add_to_cart', [ $this, 'add_to_cart' ] );
 	}
 
 	/**
@@ -96,6 +98,55 @@ class TCG_Dokan_Ajax {
 			'thumbnail'   => get_the_post_thumbnail_url( $card_id, 'medium' ),
 			'meta'        => $meta,
 			'taxonomies'  => $taxonomies,
+		] );
+	}
+
+	/**
+	 * AJAX add-to-cart for listings (buy box and vendor table).
+	 */
+	public function add_to_cart() {
+		check_ajax_referer( 'tcg_listings_nonce', 'nonce' );
+
+		$product_id = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
+		$quantity   = isset( $_POST['quantity'] ) ? absint( $_POST['quantity'] ) : 1;
+
+		if ( ! $product_id || $quantity < 1 ) {
+			wp_send_json_error( __( 'Datos inválidos.', 'tcg-dokan' ) );
+		}
+
+		// Validate product exists and is linked to a card.
+		$card_id = (int) get_post_meta( $product_id, '_linked_ygo_card', true );
+		if ( ! $card_id ) {
+			wp_send_json_error( __( 'Producto no válido.', 'tcg-dokan' ) );
+		}
+
+		$product = wc_get_product( $product_id );
+		if ( ! $product || ! $product->is_in_stock() ) {
+			wp_send_json_error( __( 'Producto sin stock.', 'tcg-dokan' ) );
+		}
+
+		// Validate stock quantity.
+		$stock_qty = $product->get_stock_quantity();
+		if ( $stock_qty !== null && $quantity > $stock_qty ) {
+			wp_send_json_error(
+				/* translators: %d: available stock */
+				sprintf( __( 'Solo %d disponible(s).', 'tcg-dokan' ), $stock_qty )
+			);
+		}
+
+		$cart_item_key = WC()->cart->add_to_cart( $product_id, $quantity );
+
+		if ( ! $cart_item_key ) {
+			wp_send_json_error( __( 'No se pudo agregar al carrito.', 'tcg-dokan' ) );
+		}
+
+		// Build mini-cart fragments.
+		$fragments = apply_filters( 'woocommerce_add_to_cart_fragments', [] );
+
+		wp_send_json_success( [
+			'fragments'  => $fragments,
+			'cart_hash'  => WC()->cart->get_cart_hash(),
+			'cart_count' => WC()->cart->get_cart_contents_count(),
 		] );
 	}
 }

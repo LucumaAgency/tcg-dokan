@@ -11,6 +11,9 @@ class TCG_Dokan_Product_Sync {
 		// Priority 15 — runs after form save (priority 10).
 		add_action( 'dokan_new_product_added', [ $this, 'sync_from_card' ], 15, 2 );
 		add_action( 'dokan_product_updated', [ $this, 'sync_from_card' ], 15, 2 );
+
+		// One-time migration: hide existing linked products from shop/search.
+		add_action( 'admin_init', [ $this, 'migrate_catalog_visibility' ] );
 	}
 
 	/**
@@ -38,6 +41,13 @@ class TCG_Dokan_Product_Sync {
 			'post_content' => $card->post_content,
 			'post_excerpt' => $excerpt,
 		] );
+
+		// Hide product from shop/search — card page is the public-facing URL.
+		$product = wc_get_product( $product_id );
+		if ( $product && $product->get_catalog_visibility() !== 'hidden' ) {
+			$product->set_catalog_visibility( 'hidden' );
+			$product->save();
+		}
 
 		// Share featured image from card (same attachment ID, no duplication).
 		$thumb_id = get_post_thumbnail_id( $card_id );
@@ -117,5 +127,38 @@ class TCG_Dokan_Product_Sync {
 		}
 
 		return implode( ' | ', $parts );
+	}
+
+	/**
+	 * One-time migration: set catalog_visibility = hidden for all existing
+	 * products linked to a ygo_card.
+	 */
+	public function migrate_catalog_visibility() {
+		if ( get_transient( 'tcg_dokan_visibility_migrated' ) ) {
+			return;
+		}
+
+		$query = new WP_Query( [
+			'post_type'      => 'product',
+			'posts_per_page' => -1,
+			'post_status'    => 'publish',
+			'fields'         => 'ids',
+			'meta_query'     => [
+				[
+					'key'     => '_linked_ygo_card',
+					'compare' => 'EXISTS',
+				],
+			],
+		] );
+
+		foreach ( $query->posts as $product_id ) {
+			$product = wc_get_product( $product_id );
+			if ( $product && $product->get_catalog_visibility() !== 'hidden' ) {
+				$product->set_catalog_visibility( 'hidden' );
+				$product->save();
+			}
+		}
+
+		set_transient( 'tcg_dokan_visibility_migrated', 1, 0 );
 	}
 }

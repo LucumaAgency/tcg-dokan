@@ -2,7 +2,7 @@
 /**
  * Plugin Name: TCG Dokan
  * Description: Marketplace de cartas YGO con Dokan — vendors crean productos WooCommerce vinculados al catálogo de cartas.
- * Version:     1.0.0
+ * Version:     1.1.0
  * Author:      TCG Dev
  * Requires Plugins: woocommerce, dokan-lite
  * Text Domain: tcg-dokan
@@ -10,7 +10,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'TCG_DOKAN_VERSION', '1.0.0' );
+define( 'TCG_DOKAN_VERSION', '1.1.0' );
 define( 'TCG_DOKAN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'TCG_DOKAN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -44,6 +44,7 @@ function tcg_dokan_check_plugins() {
 	require_once TCG_DOKAN_PATH . 'includes/class-tcg-dokan-product-form.php';
 	require_once TCG_DOKAN_PATH . 'includes/class-tcg-dokan-product-sync.php';
 	require_once TCG_DOKAN_PATH . 'includes/class-tcg-dokan-display.php';
+	require_once TCG_DOKAN_PATH . 'includes/class-tcg-dokan-listings.php';
 
 	add_action( 'init', 'tcg_dokan_boot', 25 );
 }
@@ -67,6 +68,7 @@ function tcg_dokan_boot() {
 	new TCG_Dokan_Product_Form();
 	new TCG_Dokan_Product_Sync();
 	new TCG_Dokan_Display();
+	new TCG_Dokan_Listings();
 }
 
 /**
