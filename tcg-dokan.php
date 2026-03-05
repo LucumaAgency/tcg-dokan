@@ -15,9 +15,9 @@ define( 'TCG_DOKAN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'TCG_DOKAN_URL', plugin_dir_url( __FILE__ ) );
 
 /**
- * Check dependencies before loading.
+ * Check plugin dependencies (WooCommerce + Dokan) — runs on plugins_loaded.
  */
-function tcg_dokan_check_dependencies() {
+function tcg_dokan_check_plugins() {
 	$missing = [];
 
 	if ( ! class_exists( 'WooCommerce' ) ) {
@@ -28,36 +28,39 @@ function tcg_dokan_check_dependencies() {
 		$missing[] = 'Dokan';
 	}
 
-	if ( ! post_type_exists( 'ygo_card' ) ) {
-		$missing[] = 'YGO Card CPT (tcg-theme)';
-	}
-
 	if ( $missing ) {
 		add_action( 'admin_notices', function() use ( $missing ) {
 			$list = implode( ', ', $missing );
 			echo '<div class="notice notice-error"><p>';
-			echo '<strong>TCG Dokan:</strong> requiere los siguientes componentes activos: ' . esc_html( $list );
+			echo '<strong>TCG Dokan:</strong> requiere los siguientes plugins activos: ' . esc_html( $list );
 			echo '</p></div>';
 		} );
-		return false;
-	}
-
-	return true;
-}
-
-/**
- * Boot the plugin.
- */
-function tcg_dokan_init() {
-	if ( ! tcg_dokan_check_dependencies() ) {
 		return;
 	}
 
+	// Plugins OK — load classes and defer CPT check to init.
 	require_once TCG_DOKAN_PATH . 'includes/class-tcg-dokan-setup.php';
 	require_once TCG_DOKAN_PATH . 'includes/class-tcg-dokan-ajax.php';
 	require_once TCG_DOKAN_PATH . 'includes/class-tcg-dokan-product-form.php';
 	require_once TCG_DOKAN_PATH . 'includes/class-tcg-dokan-product-sync.php';
 	require_once TCG_DOKAN_PATH . 'includes/class-tcg-dokan-display.php';
+
+	add_action( 'init', 'tcg_dokan_boot', 25 );
+}
+add_action( 'plugins_loaded', 'tcg_dokan_check_plugins', 20 );
+
+/**
+ * Boot the plugin after init — ygo_card CPT is registered by then.
+ */
+function tcg_dokan_boot() {
+	if ( ! post_type_exists( 'ygo_card' ) ) {
+		add_action( 'admin_notices', function() {
+			echo '<div class="notice notice-error"><p>';
+			echo '<strong>TCG Dokan:</strong> requiere el CPT ygo_card (tcg-theme activo).';
+			echo '</p></div>';
+		} );
+		return;
+	}
 
 	new TCG_Dokan_Setup();
 	new TCG_Dokan_Ajax();
@@ -65,7 +68,6 @@ function tcg_dokan_init() {
 	new TCG_Dokan_Product_Sync();
 	new TCG_Dokan_Display();
 }
-add_action( 'plugins_loaded', 'tcg_dokan_init', 20 );
 
 /**
  * Activation hook — seed taxonomy terms.
