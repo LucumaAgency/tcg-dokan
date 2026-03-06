@@ -6,6 +6,7 @@
  *   [tcg_buy_box]        — Buy box (best listing) or "no disponible"
  *   [tcg_other_vendors]  — Table of remaining vendor listings
  *   [tcg_card_listings]  — Both combined (buy box + table)
+ *   [tcg_card_price]     — Best listing price (for archive loops)
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -16,6 +17,7 @@ class TCG_Dokan_Listings {
 		add_shortcode( 'tcg_card_listings', [ $this, 'render_shortcode_combined' ] );
 		add_shortcode( 'tcg_buy_box', [ $this, 'render_shortcode_buy_box' ] );
 		add_shortcode( 'tcg_other_vendors', [ $this, 'render_shortcode_other_vendors' ] );
+		add_shortcode( 'tcg_card_price', [ $this, 'render_shortcode_card_price' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
 	}
 
@@ -87,17 +89,41 @@ class TCG_Dokan_Listings {
 		return ob_get_clean();
 	}
 
+	/**
+	 * [tcg_card_price] — Best listing price for use in archive loops.
+	 * Shows the price of the best-ranked vendor, or "No disponible".
+	 */
+	public function render_shortcode_card_price() {
+		$card_id = get_the_ID();
+		if ( ! $card_id || get_post_type( $card_id ) !== 'ygo_card' ) {
+			return '';
+		}
+
+		$listings = $this->get_ranked_listings_for( $card_id );
+
+		if ( empty( $listings ) ) {
+			return '<span class="tcg-card-price tcg-card-price--empty">'
+				. esc_html__( 'No disponible', 'tcg-dokan' )
+				. '</span>';
+		}
+
+		$best = $listings[0];
+
+		return '<span class="tcg-card-price">'
+			. $best['price_html'] // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			. '</span>';
+	}
+
 	/* ------------------------------------------------------------------
 	 * Data helpers
 	 * ---------------------------------------------------------------- */
 
 	/**
-	 * Get ranked listings for the current card. Cached per request.
+	 * Get ranked listings for a given card ID. Cached per request.
 	 */
-	private function get_ranked_listings() {
+	private function get_ranked_listings_for( $card_id ) {
 		static $cache = [];
 
-		$card_id = get_the_ID();
 		if ( isset( $cache[ $card_id ] ) ) {
 			return $cache[ $card_id ];
 		}
@@ -107,6 +133,13 @@ class TCG_Dokan_Listings {
 		$cache[ $card_id ] = $listings;
 
 		return $listings;
+	}
+
+	/**
+	 * Get ranked listings for the current card (wrapper).
+	 */
+	private function get_ranked_listings() {
+		return $this->get_ranked_listings_for( get_the_ID() );
 	}
 
 	/**
@@ -371,10 +404,13 @@ class TCG_Dokan_Listings {
 	 * Enqueue CSS/JS only on ygo_card singles.
 	 */
 	public function enqueue_assets() {
-		if ( ! is_singular( 'ygo_card' ) ) {
+		$is_ygo = is_singular( 'ygo_card' ) || is_post_type_archive( 'ygo_card' ) || is_tax( 'ygo_set' ) || is_tax( 'ygo_archetype' ) || is_tax( 'ygo_card_type' ) || is_tax( 'ygo_attribute' ) || is_tax( 'ygo_race' );
+
+		if ( ! $is_ygo ) {
 			return;
 		}
 
+		// CSS loads on singles and archives.
 		wp_enqueue_style(
 			'tcg-listings',
 			TCG_DOKAN_URL . 'assets/css/listings.css',
@@ -382,23 +418,26 @@ class TCG_Dokan_Listings {
 			TCG_DOKAN_VERSION
 		);
 
-		wp_enqueue_script(
-			'tcg-listings',
-			TCG_DOKAN_URL . 'assets/js/listings.js',
-			[ 'jquery' ],
-			TCG_DOKAN_VERSION,
-			true
-		);
+		// JS only on singles (add-to-cart functionality).
+		if ( is_singular( 'ygo_card' ) ) {
+			wp_enqueue_script(
+				'tcg-listings',
+				TCG_DOKAN_URL . 'assets/js/listings.js',
+				[ 'jquery' ],
+				TCG_DOKAN_VERSION,
+				true
+			);
 
-		wp_localize_script( 'tcg-listings', 'tcgListings', [
-			'ajaxurl' => admin_url( 'admin-ajax.php' ),
-			'i18n'    => [
-				'adding'  => __( 'Agregando…', 'tcg-dokan' ),
-				'added'   => __( '¡Agregado!', 'tcg-dokan' ),
-				'error'   => __( 'Error al agregar', 'tcg-dokan' ),
-				'buy'     => __( 'Comprar', 'tcg-dokan' ),
-				'add'     => __( 'Agregar al carrito', 'tcg-dokan' ),
-			],
-		] );
+			wp_localize_script( 'tcg-listings', 'tcgListings', [
+				'ajaxurl' => admin_url( 'admin-ajax.php' ),
+				'i18n'    => [
+					'adding'  => __( 'Agregando…', 'tcg-dokan' ),
+					'added'   => __( '¡Agregado!', 'tcg-dokan' ),
+					'error'   => __( 'Error al agregar', 'tcg-dokan' ),
+					'buy'     => __( 'Comprar', 'tcg-dokan' ),
+					'add'     => __( 'Agregar al carrito', 'tcg-dokan' ),
+				],
+			] );
+		}
 	}
 }
