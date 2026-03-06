@@ -2,8 +2,10 @@
 /**
  * Listings: TCGPlayer-style card page with vendor listings.
  *
- * Shortcode [tcg_card_listings] renders a buy box and vendor table
- * on ygo_card single pages.
+ * Shortcodes:
+ *   [tcg_buy_box]        — Buy box (best listing) or "no disponible"
+ *   [tcg_other_vendors]  — Table of remaining vendor listings
+ *   [tcg_card_listings]  — Both combined (buy box + table)
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -11,21 +13,25 @@ defined( 'ABSPATH' ) || exit;
 class TCG_Dokan_Listings {
 
 	public function __construct() {
-		add_shortcode( 'tcg_card_listings', [ $this, 'render_shortcode' ] );
+		add_shortcode( 'tcg_card_listings', [ $this, 'render_shortcode_combined' ] );
+		add_shortcode( 'tcg_buy_box', [ $this, 'render_shortcode_buy_box' ] );
+		add_shortcode( 'tcg_other_vendors', [ $this, 'render_shortcode_other_vendors' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
 	}
 
+	/* ------------------------------------------------------------------
+	 * Shortcode callbacks
+	 * ---------------------------------------------------------------- */
+
 	/**
-	 * Shortcode callback — dispatches to the correct render method.
+	 * [tcg_card_listings] — Combined: buy box + other vendors table.
 	 */
-	public function render_shortcode() {
+	public function render_shortcode_combined() {
 		if ( ! is_singular( 'ygo_card' ) ) {
 			return '';
 		}
 
-		$card_id  = get_the_ID();
-		$listings = $this->get_vendor_listings( $card_id );
-		$listings = $this->rank_listings( $listings );
+		$listings = $this->get_ranked_listings();
 
 		ob_start();
 
@@ -39,6 +45,68 @@ class TCG_Dokan_Listings {
 		}
 
 		return ob_get_clean();
+	}
+
+	/**
+	 * [tcg_buy_box] — Only the buy box (best listing or out-of-stock).
+	 */
+	public function render_shortcode_buy_box() {
+		if ( ! is_singular( 'ygo_card' ) ) {
+			return '';
+		}
+
+		$listings = $this->get_ranked_listings();
+
+		ob_start();
+
+		if ( empty( $listings ) ) {
+			$this->render_out_of_stock();
+		} else {
+			$this->render_buy_box( $listings[0] );
+		}
+
+		return ob_get_clean();
+	}
+
+	/**
+	 * [tcg_other_vendors] — Only the other vendors table (excludes the best listing).
+	 */
+	public function render_shortcode_other_vendors() {
+		if ( ! is_singular( 'ygo_card' ) ) {
+			return '';
+		}
+
+		$listings = $this->get_ranked_listings();
+
+		ob_start();
+
+		if ( count( $listings ) >= 2 ) {
+			$this->render_vendors_table( array_slice( $listings, 1 ) );
+		}
+
+		return ob_get_clean();
+	}
+
+	/* ------------------------------------------------------------------
+	 * Data helpers
+	 * ---------------------------------------------------------------- */
+
+	/**
+	 * Get ranked listings for the current card. Cached per request.
+	 */
+	private function get_ranked_listings() {
+		static $cache = [];
+
+		$card_id = get_the_ID();
+		if ( isset( $cache[ $card_id ] ) ) {
+			return $cache[ $card_id ];
+		}
+
+		$listings = $this->get_vendor_listings( $card_id );
+		$listings = $this->rank_listings( $listings );
+		$cache[ $card_id ] = $listings;
+
+		return $listings;
 	}
 
 	/**
@@ -134,6 +202,22 @@ class TCG_Dokan_Listings {
 	}
 
 	/**
+	 * Render a quantity <select> dropdown with options 1..stock_qty.
+	 */
+	private function render_qty_select( $stock_qty, $css_class = 'tcg-qty-select' ) {
+		$max = $stock_qty > 0 ? min( $stock_qty, 99 ) : 10;
+		echo '<select class="' . esc_attr( $css_class ) . '">';
+		for ( $i = 1; $i <= $max; $i++ ) {
+			echo '<option value="' . esc_attr( $i ) . '">' . esc_html( $i ) . '</option>';
+		}
+		echo '</select>';
+	}
+
+	/* ------------------------------------------------------------------
+	 * Render methods
+	 * ---------------------------------------------------------------- */
+
+	/**
 	 * Render out-of-stock message.
 	 */
 	private function render_out_of_stock() {
@@ -190,8 +274,7 @@ class TCG_Dokan_Listings {
 			</div>
 
 			<div class="tcg-buy-box__actions">
-				<input type="number" class="tcg-qty-input" value="1" min="1"
-					max="<?php echo esc_attr( $listing['stock_qty'] > 0 ? $listing['stock_qty'] : '' ); ?>" />
+				<?php $this->render_qty_select( $listing['stock_qty'] ); ?>
 				<button type="button" class="tcg-add-to-cart button alt"
 					data-product-id="<?php echo esc_attr( $listing['product_id'] ); ?>"
 					data-nonce="<?php echo esc_attr( $nonce ); ?>">
@@ -267,8 +350,7 @@ class TCG_Dokan_Listings {
 							<?php echo esc_html( $listing['stock_qty'] > 0 ? $listing['stock_qty'] : __( 'En stock', 'tcg-dokan' ) ); ?>
 						</td>
 						<td data-label="<?php esc_attr_e( 'Cantidad', 'tcg-dokan' ); ?>">
-							<input type="number" class="tcg-qty-input" value="1" min="1"
-								max="<?php echo esc_attr( $listing['stock_qty'] > 0 ? $listing['stock_qty'] : '' ); ?>" />
+							<?php $this->render_qty_select( $listing['stock_qty'], 'tcg-qty-select' ); ?>
 						</td>
 						<td data-label="<?php esc_attr_e( 'Comprar', 'tcg-dokan' ); ?>">
 							<button type="button" class="tcg-add-to-cart button alt"

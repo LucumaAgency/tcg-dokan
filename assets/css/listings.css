@@ -96,19 +96,21 @@
 	color: #2e7d32;
 }
 
-/* Quantity input
+/* Quantity select
    ========================================================================== */
 
-.tcg-qty-input {
-	width: 64px;
-	padding: 8px;
+.tcg-qty-select {
+	width: 72px;
+	padding: 8px 4px;
 	text-align: center;
 	border: 1px solid #ccc;
 	border-radius: 4px;
 	font-size: 0.95em;
+	background: #fff;
+	cursor: pointer;
 }
 
-.tcg-qty-input:focus {
+.tcg-qty-select:focus {
 	border-color: #0073aa;
 	outline: none;
 }
@@ -169,9 +171,9 @@
 	background: #fafafa;
 }
 
-.tcg-vendors-table .tcg-qty-input {
-	width: 56px;
-	padding: 6px;
+.tcg-vendors-table .tcg-qty-select {
+	width: 64px;
+	padding: 6px 2px;
 }
 
 .tcg-vendors-table .tcg-add-to-cart {
@@ -222,7 +224,7 @@
 		align-items: stretch;
 	}
 
-	.tcg-buy-box__actions .tcg-qty-input {
+	.tcg-buy-box__actions .tcg-qty-select {
 		width: 100%;
 	}
 }

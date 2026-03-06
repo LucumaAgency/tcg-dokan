@@ -11,9 +11,9 @@
 		var productId  = $btn.data( 'product-id' );
 		var nonce      = $btn.data( 'nonce' );
 
-		// Find qty input: in same buy box or same table row.
+		// Find qty select: in same buy box or same table row.
 		var $context   = $btn.closest( '.tcg-buy-box, tr' );
-		var qty        = parseInt( $context.find( '.tcg-qty-input' ).val(), 10 ) || 1;
+		var qty        = parseInt( $context.find( '.tcg-qty-select' ).val(), 10 ) || 1;
 
 		// Prevent double-click.
 		if ( $btn.hasClass( 'tcg-loading' ) ) {
