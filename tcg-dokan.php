@@ -2,7 +2,7 @@
 /**
  * Plugin Name: TCG Dokan
  * Description: Marketplace de cartas YGO con Dokan — vendors crean productos WooCommerce vinculados al catálogo de cartas.
- * Version:     1.5.0
+ * Version:     1.5.1
  * Author:      TCG Dev
  * Requires Plugins: woocommerce, dokan-lite
  * Text Domain: tcg-dokan
@@ -10,7 +10,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'TCG_DOKAN_VERSION', '1.5.0' );
+define( 'TCG_DOKAN_VERSION', '1.5.1' );
 define( 'TCG_DOKAN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'TCG_DOKAN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -106,24 +106,37 @@ function tcg_dokan_activate() {
 register_activation_hook( __FILE__, 'tcg_dokan_activate' );
 
 /**
- * Add a composite index on (post_type, post_status, post_title) for fast LIKE searches.
+ * Add a FULLTEXT index on post_title for fast card name search.
+ * Also removes the old B-tree index if present.
  * Only runs once; safe to call multiple times.
  */
 function tcg_dokan_maybe_add_title_index() {
 	global $wpdb;
 
-	$index_name = 'tcg_type_status_title';
+	$ft_index  = 'tcg_ft_post_title';
+	$old_index = 'tcg_type_status_title';
 
-	// Check if index already exists.
-	$existing = $wpdb->get_var( $wpdb->prepare(
+	// Remove old B-tree index if it exists.
+	$has_old = $wpdb->get_var( $wpdb->prepare(
 		"SELECT COUNT(1) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema = %s AND table_name = %s AND index_name = %s",
 		DB_NAME,
 		$wpdb->posts,
-		$index_name
+		$old_index
+	) );
+	if ( $has_old ) {
+		$wpdb->query( "ALTER TABLE {$wpdb->posts} DROP INDEX {$old_index}" ); // phpcs:ignore
+	}
+
+	// Add FULLTEXT index if not present.
+	$has_ft = $wpdb->get_var( $wpdb->prepare(
+		"SELECT COUNT(1) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema = %s AND table_name = %s AND index_name = %s",
+		DB_NAME,
+		$wpdb->posts,
+		$ft_index
 	) );
 
-	if ( ! $existing ) {
+	if ( ! $has_ft ) {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->query( "ALTER TABLE {$wpdb->posts} ADD INDEX {$index_name} (post_type, post_status, post_title(191))" );
+		$wpdb->query( "ALTER TABLE {$wpdb->posts} ADD FULLTEXT INDEX {$ft_index} (post_title)" );
 	}
 }

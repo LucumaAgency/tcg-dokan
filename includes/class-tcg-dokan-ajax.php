@@ -29,13 +29,24 @@ class TCG_Dokan_Ajax {
 
 			global $wpdb;
 
-			$like = '%' . $wpdb->esc_like( $term ) . '%';
+			// FULLTEXT search on post_title for ygo_card posts only.
+			// Append * for prefix matching (e.g. "bujin" matches "bujintei").
+			$ft_term = $wpdb->esc_like( $term ) . '*';
 
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$post_ids = $wpdb->get_col( $wpdb->prepare(
-				"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'ygo_card' AND post_status = 'publish' AND post_title LIKE %s ORDER BY post_title ASC LIMIT 15",
-				$like
+				"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'ygo_card' AND post_status = 'publish' AND MATCH(post_title) AGAINST(%s IN BOOLEAN MODE) ORDER BY post_title ASC LIMIT 15",
+				$ft_term
 			) );
+
+			// Fallback to LIKE if FULLTEXT returns nothing (e.g. partial mid-word match).
+			if ( empty( $post_ids ) ) {
+				$like = '%' . $wpdb->esc_like( $term ) . '%';
+				$post_ids = $wpdb->get_col( $wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'ygo_card' AND post_status = 'publish' AND post_title LIKE %s ORDER BY post_title ASC LIMIT 15",
+					$like
+				) );
+			}
 
 			$results = [];
 
