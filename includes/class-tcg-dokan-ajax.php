@@ -20,54 +20,56 @@ class TCG_Dokan_Ajax {
 	public function search_cards() {
 		check_ajax_referer( 'tcg_dokan_nonce', 'nonce' );
 
-		$term = isset( $_GET['term'] ) ? sanitize_text_field( wp_unslash( $_GET['term'] ) ) : '';
+		try {
+			$term = isset( $_GET['term'] ) ? sanitize_text_field( wp_unslash( $_GET['term'] ) ) : '';
 
-		if ( strlen( $term ) < 3 ) {
-			wp_send_json( [] );
-		}
-
-		global $wpdb;
-
-		$like = '%' . $wpdb->esc_like( $term ) . '%';
-
-		// Direct query: search only in post_title, skip post_content entirely.
-		$post_ids = $wpdb->get_col( $wpdb->prepare(
-			"SELECT ID FROM {$wpdb->posts}
-			 WHERE post_type = 'ygo_card'
-			   AND post_status = 'publish'
-			   AND post_title LIKE %s
-			 ORDER BY post_title ASC
-			 LIMIT 15",
-			$like
-		) );
-
-		$results = [];
-
-		if ( ! empty( $post_ids ) ) {
-			// Prime meta cache in bulk (1 query instead of N).
-			update_post_meta_cache( $post_ids );
-
-			foreach ( $post_ids as $card_id ) {
-				$card = get_post( $card_id );
-				if ( ! $card ) {
-					continue;
-				}
-				$set_code   = get_post_meta( $card_id, '_ygo_set_code', true );
-				$set_rarity = get_post_meta( $card_id, '_ygo_set_rarity', true );
-				$thumb      = get_the_post_thumbnail_url( $card_id, 'thumbnail' );
-
-				$results[] = [
-					'id'         => $card->ID,
-					'label'      => $card->post_title . ( $set_code ? " [{$set_code}]" : '' ),
-					'value'      => $card->post_title,
-					'thumbnail'  => $thumb ?: '',
-					'set_code'   => $set_code,
-					'set_rarity' => $set_rarity,
-				];
+			if ( strlen( $term ) < 3 ) {
+				wp_send_json( [] );
 			}
-		}
 
-		wp_send_json( $results );
+			global $wpdb;
+
+			$like = '%' . $wpdb->esc_like( $term ) . '%';
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$post_ids = $wpdb->get_col( $wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'ygo_card' AND post_status = 'publish' AND post_title LIKE %s ORDER BY post_title ASC LIMIT 15",
+				$like
+			) );
+
+			$results = [];
+
+			if ( ! empty( $post_ids ) ) {
+				update_post_meta_cache( $post_ids );
+
+				foreach ( $post_ids as $card_id ) {
+					$card = get_post( $card_id );
+					if ( ! $card ) {
+						continue;
+					}
+					$set_code   = get_post_meta( $card_id, '_ygo_set_code', true );
+					$set_rarity = get_post_meta( $card_id, '_ygo_set_rarity', true );
+					$thumb      = get_the_post_thumbnail_url( $card_id, 'thumbnail' );
+
+					$results[] = [
+						'id'         => $card->ID,
+						'label'      => $card->post_title . ( $set_code ? " [{$set_code}]" : '' ),
+						'value'      => $card->post_title,
+						'thumbnail'  => $thumb ?: '',
+						'set_code'   => $set_code,
+						'set_rarity' => $set_rarity,
+					];
+				}
+			}
+
+			wp_send_json( $results );
+		} catch ( \Throwable $e ) {
+			wp_send_json_error( [
+				'message' => $e->getMessage(),
+				'file'    => $e->getFile(),
+				'line'    => $e->getLine(),
+			] );
+		}
 	}
 
 	/**
