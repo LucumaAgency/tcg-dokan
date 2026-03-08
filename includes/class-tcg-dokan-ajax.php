@@ -44,12 +44,14 @@ class TCG_Dokan_Ajax {
 		$results = [];
 
 		if ( ! empty( $post_ids ) ) {
-			// Prime meta and thumbnail caches in bulk.
+			// Prime meta cache in bulk (1 query instead of N).
 			update_post_meta_cache( $post_ids );
-			_prime_post_caches( $post_ids );
 
 			foreach ( $post_ids as $card_id ) {
-				$card       = get_post( $card_id );
+				$card = get_post( $card_id );
+				if ( ! $card ) {
+					continue;
+				}
 				$set_code   = get_post_meta( $card_id, '_ygo_set_code', true );
 				$set_rarity = get_post_meta( $card_id, '_ygo_set_rarity', true );
 				$thumb      = get_the_post_thumbnail_url( $card_id, 'thumbnail' );
