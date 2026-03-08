@@ -47,14 +47,17 @@
             term: request.term,
           },
           success: function (data) {
-            console.log('[TCG] Search results:', data.length, 'cards found');
-            if (!data.length) {
+            console.log('[TCG] Raw response:', JSON.stringify(data));
+            // Handle both raw array and {success, data} envelope.
+            var cards = Array.isArray(data) ? data : (data.data || []);
+            console.log('[TCG] Search results:', cards.length, 'cards found');
+            if (!cards.length) {
               response([
                 { label: tcgDokan.i18n.noResults, value: '', id: 0 },
               ]);
               return;
             }
-            response(data);
+            response(cards);
           },
           error: function (xhr, status, error) {
             console.error('[TCG] Search AJAX error:', status, error);
