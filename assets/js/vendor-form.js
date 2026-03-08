@@ -10,14 +10,12 @@
    * Hide the product title field and move card selector to the top of the form.
    */
   function setupFormLayout() {
-    // Hide the Dokan product title field — it gets auto-filled from the linked card.
     var $titleField = $('input[name="post_title"]').closest('.dokan-form-group');
     if ($titleField.length) {
       $titleField.hide();
       console.log('[TCG] Title field hidden');
     }
 
-    // Move the card selector to the top of the form.
     var $cardSelector = $('.tcg-card-selector');
     var $form = $cardSelector.closest('form');
     if ($form.length && $cardSelector.length) {
@@ -30,48 +28,34 @@
   }
 
   /**
-   * Initialize autocomplete on the card search field.
+   * Initialize autocomplete with local card data (no AJAX for search).
    */
   function initAutocomplete() {
-    console.log('[TCG] Initializing card autocomplete');
+    var allCards = tcgDokan.cards || [];
+    console.log('[TCG] Initializing autocomplete with', allCards.length, 'preloaded cards');
 
     $search.autocomplete({
       source: function (request, response) {
-        console.log('[TCG] Searching for:', request.term);
-        $.ajax({
-          url: tcgDokan.ajaxUrl,
-          dataType: 'json',
-          data: {
-            action: 'tcg_search_ygo_cards',
-            nonce: tcgDokan.nonce,
-            term: request.term,
-          },
-          success: function (data) {
-            console.log('[TCG] Raw response:', JSON.stringify(data));
-            // Handle raw array, {success, data} envelope, or error.
-            if (data.success === false) {
-              console.error('[TCG] Server error:', data.data);
-              response([]);
-              return;
-            }
-            var cards = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
-            console.log('[TCG] Search results:', cards.length, 'cards found');
-            if (!cards.length) {
-              response([
-                { label: tcgDokan.i18n.noResults, value: '', id: 0 },
-              ]);
-              return;
-            }
-            response(cards);
-          },
-          error: function (xhr, status, error) {
-            console.error('[TCG] Search AJAX error:', status, error);
-            console.error('[TCG] Response:', xhr.responseText);
-          },
-        });
+        var term = request.term.toLowerCase();
+        console.log('[TCG] Searching locally for:', term);
+
+        var matches = [];
+        for (var i = 0; i < allCards.length && matches.length < 15; i++) {
+          if (allCards[i].label.toLowerCase().indexOf(term) !== -1) {
+            matches.push(allCards[i]);
+          }
+        }
+
+        console.log('[TCG] Local results:', matches.length, 'cards found');
+
+        if (!matches.length) {
+          response([{ label: tcgDokan.i18n.noResults, value: '', id: 0 }]);
+          return;
+        }
+        response(matches);
       },
-      minLength: 3,
-      delay: 400,
+      minLength: 2,
+      delay: 100,
       select: function (event, ui) {
         if (!ui.item.id) {
           event.preventDefault();
@@ -85,7 +69,6 @@
 
         loadCardPreview(ui.item.id);
 
-        // Auto-fill the hidden title field.
         var $title = $('input[name="post_title"]');
         if ($title.length) {
           $title.val(ui.item.value);
@@ -101,10 +84,6 @@
         return $('<li>').append('<div class="tcg-ac-item tcg-ac-noresult">' + item.label + '</div>').appendTo(ul);
       }
 
-      var thumb = item.thumbnail
-        ? '<img src="' + item.thumbnail + '" alt="" class="tcg-ac-thumb">'
-        : '<span class="tcg-ac-thumb tcg-ac-no-thumb"></span>';
-
       var info =
         '<div class="tcg-ac-info">' +
         '<strong>' + $('<span>').text(item.value).html() + '</strong>' +
@@ -113,13 +92,13 @@
         '</div>';
 
       return $('<li>')
-        .append('<div class="tcg-ac-item">' + thumb + info + '</div>')
+        .append('<div class="tcg-ac-item">' + info + '</div>')
         .appendTo(ul);
     };
   }
 
   /**
-   * Load card preview via AJAX.
+   * Load card preview via AJAX (only when a card is selected, not during search).
    */
   function loadCardPreview(cardId) {
     console.log('[TCG] Loading preview for card:', cardId);
@@ -174,7 +153,6 @@
           html += '<p><strong>Link:</strong> ' + meta._ygo_linkval + '</p>';
         }
 
-        // Reference prices.
         var prices = meta._ygo_ref_prices;
         if (prices && typeof prices === 'object') {
           var priceLabels = { tcgplayer: 'TCGPlayer', cardmarket: 'Cardmarket', ebay: 'eBay', amazon: 'Amazon' };

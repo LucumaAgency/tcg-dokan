@@ -150,6 +150,7 @@ class TCG_Dokan_Product_Form {
 		wp_localize_script( 'tcg-vendor-form', 'tcgDokan', [
 			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 			'nonce'   => wp_create_nonce( 'tcg_dokan_nonce' ),
+			'cards'   => $this->get_all_cards_for_js(),
 			'i18n'    => [
 				'searching'  => __( 'Buscando...', 'tcg-dokan' ),
 				'noResults'  => __( 'No se encontraron cartas', 'tcg-dokan' ),
@@ -163,5 +164,50 @@ class TCG_Dokan_Product_Form {
 			[],
 			TCG_DOKAN_VERSION
 		);
+	}
+
+	/**
+	 * Fetch all published ygo_card posts for client-side search.
+	 * Cached in a transient for 1 hour to avoid heavy queries on every page load.
+	 */
+	private function get_all_cards_for_js() {
+		$cache_key = 'tcg_dokan_cards_js';
+		$cached    = get_transient( $cache_key );
+
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
+		global $wpdb;
+
+		// Lightweight query: only the fields needed for autocomplete.
+		$rows = $wpdb->get_results(
+			"SELECT p.ID, p.post_title,
+				MAX(CASE WHEN pm1.meta_key = '_ygo_set_code' THEN pm1.meta_value END) AS set_code,
+				MAX(CASE WHEN pm1.meta_key = '_ygo_set_rarity' THEN pm1.meta_value END) AS set_rarity
+			FROM {$wpdb->posts} p
+			LEFT JOIN {$wpdb->postmeta} pm1 ON p.ID = pm1.post_id AND pm1.meta_key IN ('_ygo_set_code', '_ygo_set_rarity')
+			WHERE p.post_type = 'ygo_card' AND p.post_status = 'publish'
+			GROUP BY p.ID
+			ORDER BY p.post_title ASC",
+			ARRAY_A
+		);
+
+		$cards = [];
+		foreach ( $rows as $row ) {
+			$set_code = $row['set_code'] ?: '';
+			$cards[]  = [
+				'id'         => (int) $row['ID'],
+				'label'      => $row['post_title'] . ( $set_code ? " [{$set_code}]" : '' ),
+				'value'      => $row['post_title'],
+				'set_code'   => $set_code,
+				'set_rarity' => $row['set_rarity'] ?: '',
+			];
+		}
+
+		// Cache for 1 hour.
+		set_transient( $cache_key, $cards, HOUR_IN_SECONDS );
+
+		return $cards;
 	}
 }
