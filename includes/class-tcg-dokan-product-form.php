@@ -179,6 +179,12 @@ class TCG_Dokan_Product_Form {
 			.dokan-rma-wrapper,
 			.dokan-product-rma,
 			#dokan-product-rma { display: none !important; }
+
+			/* SKU field */
+			.dokan-product-inventory .content-half-part:has(#_sku) { display: none !important; }
+
+			/* Manage stock checkbox — hide to prevent unchecking */
+			.dokan-product-inventory .dokan-form-group:has(#_manage_stock) { display: none !important; }
 		</style>
 		<?php
 	}

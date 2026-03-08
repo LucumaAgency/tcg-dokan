@@ -215,8 +215,22 @@
 
     console.log('[TCG] Initializing vendor form');
     setupFormLayout();
+    forceManageStock();
     initAutocomplete();
     initChangeButton();
     loadExistingPreview();
   });
+
+  /**
+   * Force "manage stock" checkbox to checked and show stock fields.
+   */
+  function forceManageStock() {
+    var $checkbox = $('#_manage_stock');
+    if ($checkbox.length && !$checkbox.is(':checked')) {
+      $checkbox.prop('checked', true).trigger('change');
+      console.log('[TCG] Manage stock forced on');
+    }
+    // Show the stock management fields.
+    $('.show_if_stock').show();
+  }
 })(jQuery);
