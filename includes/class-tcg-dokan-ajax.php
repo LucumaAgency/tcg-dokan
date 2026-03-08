@@ -40,7 +40,7 @@ class TCG_Dokan_Ajax {
 			$results = [];
 
 			if ( ! empty( $post_ids ) ) {
-				update_post_meta_cache( $post_ids );
+				update_meta_cache( 'post', $post_ids );
 
 				foreach ( $post_ids as $card_id ) {
 					$card = get_post( $card_id );

@@ -48,8 +48,13 @@
           },
           success: function (data) {
             console.log('[TCG] Raw response:', JSON.stringify(data));
-            // Handle both raw array and {success, data} envelope.
-            var cards = Array.isArray(data) ? data : (data.data || []);
+            // Handle raw array, {success, data} envelope, or error.
+            if (data.success === false) {
+              console.error('[TCG] Server error:', data.data);
+              response([]);
+              return;
+            }
+            var cards = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
             console.log('[TCG] Search results:', cards.length, 'cards found');
             if (!cards.length) {
               response([
