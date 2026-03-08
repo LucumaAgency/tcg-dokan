@@ -131,34 +131,52 @@ class TCG_Dokan_Product_Sync {
 
 	/**
 	 * One-time migration: set catalog_visibility = hidden for all existing
-	 * products linked to a ygo_card.
+	 * products linked to a ygo_card. Processes in batches of 100.
 	 */
 	public function migrate_catalog_visibility() {
 		if ( get_transient( 'tcg_dokan_visibility_migrated' ) ) {
 			return;
 		}
 
-		$query = new WP_Query( [
-			'post_type'      => 'product',
-			'posts_per_page' => -1,
-			'post_status'    => 'publish',
-			'fields'         => 'ids',
-			'meta_query'     => [
-				[
-					'key'     => '_linked_ygo_card',
-					'compare' => 'EXISTS',
+		$batch_size = 100;
+		$page       = 1;
+		$failures   = 0;
+
+		do {
+			$query = new WP_Query( [
+				'post_type'      => 'product',
+				'posts_per_page' => $batch_size,
+				'paged'          => $page,
+				'post_status'    => 'publish',
+				'fields'         => 'ids',
+				'meta_query'     => [
+					[
+						'key'     => '_linked_ygo_card',
+						'compare' => 'EXISTS',
+					],
 				],
-			],
-		] );
+			] );
 
-		foreach ( $query->posts as $product_id ) {
-			$product = wc_get_product( $product_id );
-			if ( $product && $product->get_catalog_visibility() !== 'hidden' ) {
-				$product->set_catalog_visibility( 'hidden' );
-				$product->save();
+			foreach ( $query->posts as $product_id ) {
+				$product = wc_get_product( $product_id );
+				if ( ! $product ) {
+					$failures++;
+					continue;
+				}
+				if ( $product->get_catalog_visibility() !== 'hidden' ) {
+					$product->set_catalog_visibility( 'hidden' );
+					$result = $product->save();
+					if ( ! $result ) {
+						$failures++;
+					}
+				}
 			}
-		}
 
-		set_transient( 'tcg_dokan_visibility_migrated', 1, 0 );
+			$page++;
+		} while ( $query->found_posts > ( $page - 1 ) * $batch_size );
+
+		if ( 0 === $failures ) {
+			set_transient( 'tcg_dokan_visibility_migrated', 1, 0 );
+		}
 	}
 }
