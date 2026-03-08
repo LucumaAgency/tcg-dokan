@@ -26,41 +26,33 @@ class TCG_Dokan_Ajax {
 			wp_send_json( [] );
 		}
 
-		// Restrict WP_Query search to post_title only (skip post_content).
-		$title_only_filter = function( $where, $wp_query ) use ( $term ) {
-			global $wpdb;
-			if ( $wp_query->get( '_tcg_title_search' ) ) {
-				$like  = '%' . $wpdb->esc_like( $term ) . '%';
-				$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_title LIKE %s", $like );
-			}
-			return $where;
-		};
+		global $wpdb;
 
-		add_filter( 'posts_where', $title_only_filter, 10, 2 );
+		$like = '%' . $wpdb->esc_like( $term ) . '%';
 
-		$query = new WP_Query( [
-			'post_type'          => 'ygo_card',
-			'posts_per_page'     => 15,
-			'post_status'        => 'publish',
-			'orderby'            => 'title',
-			'order'              => 'ASC',
-			'_tcg_title_search'  => true,
-		] );
-
-		remove_filter( 'posts_where', $title_only_filter, 10 );
+		// Direct query: search only in post_title, skip post_content entirely.
+		$post_ids = $wpdb->get_col( $wpdb->prepare(
+			"SELECT ID FROM {$wpdb->posts}
+			 WHERE post_type = 'ygo_card'
+			   AND post_status = 'publish'
+			   AND post_title LIKE %s
+			 ORDER BY post_title ASC
+			 LIMIT 15",
+			$like
+		) );
 
 		$results = [];
 
-		if ( ! empty( $query->posts ) ) {
-			// Prime meta cache in a single query for all results.
-			$post_ids = wp_list_pluck( $query->posts, 'ID' );
+		if ( ! empty( $post_ids ) ) {
+			// Prime meta and thumbnail caches in bulk.
 			update_post_meta_cache( $post_ids );
-			update_post_thumbnail_cache( $query );
+			_prime_post_caches( $post_ids );
 
-			foreach ( $query->posts as $card ) {
-				$set_code   = get_post_meta( $card->ID, '_ygo_set_code', true );
-				$set_rarity = get_post_meta( $card->ID, '_ygo_set_rarity', true );
-				$thumb      = get_the_post_thumbnail_url( $card->ID, 'thumbnail' );
+			foreach ( $post_ids as $card_id ) {
+				$card       = get_post( $card_id );
+				$set_code   = get_post_meta( $card_id, '_ygo_set_code', true );
+				$set_rarity = get_post_meta( $card_id, '_ygo_set_rarity', true );
+				$thumb      = get_the_post_thumbnail_url( $card_id, 'thumbnail' );
 
 				$results[] = [
 					'id'         => $card->ID,

@@ -7,11 +7,37 @@
   var $changeBtn = $('#tcg-change-card');
 
   /**
+   * Hide the product title field and move card selector to the top of the form.
+   */
+  function setupFormLayout() {
+    // Hide the Dokan product title field — it gets auto-filled from the linked card.
+    var $titleField = $('input[name="post_title"]').closest('.dokan-form-group');
+    if ($titleField.length) {
+      $titleField.hide();
+      console.log('[TCG] Title field hidden');
+    }
+
+    // Move the card selector to the top of the form.
+    var $cardSelector = $('.tcg-card-selector');
+    var $form = $cardSelector.closest('form');
+    if ($form.length && $cardSelector.length) {
+      var $firstGroup = $form.find('.dokan-form-group').first();
+      if ($firstGroup.length && !$firstGroup.hasClass('tcg-card-selector')) {
+        $cardSelector.insertBefore($firstGroup);
+        console.log('[TCG] Card selector moved to top of form');
+      }
+    }
+  }
+
+  /**
    * Initialize autocomplete on the card search field.
    */
   function initAutocomplete() {
+    console.log('[TCG] Initializing card autocomplete');
+
     $search.autocomplete({
       source: function (request, response) {
+        console.log('[TCG] Searching for:', request.term);
         $.ajax({
           url: tcgDokan.ajaxUrl,
           dataType: 'json',
@@ -21,6 +47,7 @@
             term: request.term,
           },
           success: function (data) {
+            console.log('[TCG] Search results:', data.length, 'cards found');
             if (!data.length) {
               response([
                 { label: tcgDokan.i18n.noResults, value: '', id: 0 },
@@ -28,6 +55,10 @@
               return;
             }
             response(data);
+          },
+          error: function (xhr, status, error) {
+            console.error('[TCG] Search AJAX error:', status, error);
+            console.error('[TCG] Response:', xhr.responseText);
           },
         });
       },
@@ -39,15 +70,17 @@
           return;
         }
 
+        console.log('[TCG] Card selected:', ui.item.id, ui.item.value);
+
         $search.val(ui.item.value).prop('readonly', true);
         $cardId.val(ui.item.id);
 
         loadCardPreview(ui.item.id);
 
-        // Make title readonly if it exists.
+        // Auto-fill the hidden title field.
         var $title = $('input[name="post_title"]');
         if ($title.length) {
-          $title.val(ui.item.value).prop('readonly', true);
+          $title.val(ui.item.value);
         }
 
         return false;
@@ -81,6 +114,7 @@
    * Load card preview via AJAX.
    */
   function loadCardPreview(cardId) {
+    console.log('[TCG] Loading preview for card:', cardId);
     $.ajax({
       url: tcgDokan.ajaxUrl,
       dataType: 'json',
@@ -90,7 +124,12 @@
         card_id: cardId,
       },
       success: function (resp) {
-        if (!resp.success) return;
+        if (!resp.success) {
+          console.error('[TCG] Preview load failed:', resp.data);
+          return;
+        }
+
+        console.log('[TCG] Preview loaded for:', resp.data.title);
 
         var card = resp.data;
         var html = '<div class="tcg-preview-inner">';
@@ -146,6 +185,9 @@
 
         $preview.html(html).show();
       },
+      error: function (xhr, status, error) {
+        console.error('[TCG] Preview AJAX error:', status, error);
+      },
     });
   }
 
@@ -154,6 +196,7 @@
    */
   function initChangeButton() {
     $(document).on('click', '#tcg-change-card', function () {
+      console.log('[TCG] Changing linked card');
       $search.val('').prop('readonly', false).focus();
       $cardId.val('');
       $preview.hide().empty();
@@ -161,7 +204,7 @@
 
       var $title = $('input[name="post_title"]');
       if ($title.length) {
-        $title.val('').prop('readonly', false);
+        $title.val('');
       }
     });
   }
@@ -172,14 +215,20 @@
   function loadExistingPreview() {
     var existingId = $cardId.val();
     if (existingId && parseInt(existingId, 10) > 0) {
+      console.log('[TCG] Loading existing linked card:', existingId);
       loadCardPreview(existingId);
     }
   }
 
   // Init on DOM ready.
   $(function () {
-    if (!$search.length) return;
+    if (!$search.length) {
+      console.log('[TCG] Card search field not found, skipping init');
+      return;
+    }
 
+    console.log('[TCG] Initializing vendor form');
+    setupFormLayout();
     initAutocomplete();
     initChangeButton();
     loadExistingPreview();
