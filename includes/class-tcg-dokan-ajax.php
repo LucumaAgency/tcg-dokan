@@ -15,40 +15,62 @@ class TCG_Dokan_Ajax {
 	}
 
 	/**
-	 * Search ygo_card posts by title. Returns max 15 results.
+	 * Search ygo_card posts by title only. Returns max 15 results.
 	 */
 	public function search_cards() {
 		check_ajax_referer( 'tcg_dokan_nonce', 'nonce' );
 
 		$term = isset( $_GET['term'] ) ? sanitize_text_field( wp_unslash( $_GET['term'] ) ) : '';
 
-		if ( strlen( $term ) < 2 ) {
+		if ( strlen( $term ) < 3 ) {
 			wp_send_json( [] );
 		}
 
+		// Restrict WP_Query search to post_title only (skip post_content).
+		$title_only_filter = function( $where, $wp_query ) use ( $term ) {
+			global $wpdb;
+			if ( $wp_query->get( '_tcg_title_search' ) ) {
+				$like  = '%' . $wpdb->esc_like( $term ) . '%';
+				$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_title LIKE %s", $like );
+			}
+			return $where;
+		};
+
+		add_filter( 'posts_where', $title_only_filter, 10, 2 );
+
 		$query = new WP_Query( [
-			'post_type'      => 'ygo_card',
-			'posts_per_page' => 15,
-			's'              => $term,
-			'post_status'    => 'publish',
-			'orderby'        => 'relevance',
+			'post_type'          => 'ygo_card',
+			'posts_per_page'     => 15,
+			'post_status'        => 'publish',
+			'orderby'            => 'title',
+			'order'              => 'ASC',
+			'_tcg_title_search'  => true,
 		] );
+
+		remove_filter( 'posts_where', $title_only_filter, 10 );
 
 		$results = [];
 
-		foreach ( $query->posts as $card ) {
-			$set_code   = get_post_meta( $card->ID, '_ygo_set_code', true );
-			$set_rarity = get_post_meta( $card->ID, '_ygo_set_rarity', true );
-			$thumb      = get_the_post_thumbnail_url( $card->ID, 'thumbnail' );
+		if ( ! empty( $query->posts ) ) {
+			// Prime meta cache in a single query for all results.
+			$post_ids = wp_list_pluck( $query->posts, 'ID' );
+			update_post_meta_cache( $post_ids );
+			update_post_thumbnail_cache( $query );
 
-			$results[] = [
-				'id'         => $card->ID,
-				'label'      => $card->post_title . ( $set_code ? " [{$set_code}]" : '' ),
-				'value'      => $card->post_title,
-				'thumbnail'  => $thumb ?: '',
-				'set_code'   => $set_code,
-				'set_rarity' => $set_rarity,
-			];
+			foreach ( $query->posts as $card ) {
+				$set_code   = get_post_meta( $card->ID, '_ygo_set_code', true );
+				$set_rarity = get_post_meta( $card->ID, '_ygo_set_rarity', true );
+				$thumb      = get_the_post_thumbnail_url( $card->ID, 'thumbnail' );
+
+				$results[] = [
+					'id'         => $card->ID,
+					'label'      => $card->post_title . ( $set_code ? " [{$set_code}]" : '' ),
+					'value'      => $card->post_title,
+					'thumbnail'  => $thumb ?: '',
+					'set_code'   => $set_code,
+					'set_rarity' => $set_rarity,
+				];
+			}
 		}
 
 		wp_send_json( $results );

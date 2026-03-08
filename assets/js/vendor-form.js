@@ -31,7 +31,8 @@
           },
         });
       },
-      minLength: 2,
+      minLength: 3,
+      delay: 400,
       select: function (event, ui) {
         if (!ui.item.id) {
           event.preventDefault();
