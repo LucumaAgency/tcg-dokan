@@ -140,42 +140,32 @@ class TCG_Dokan_Product_Form {
 		?>
 		<style>
 			/* Downloadable / Virtual checkboxes */
-			.dokan-product-type-checkbox,
-			.dokan-downloadable-checkbox,
-			.dokan-virtual-checkbox,
-			label[for="dokan-is-downloadable"],
-			label[for="dokan-is-virtual"],
-			label[for="_downloadable"],
-			label[for="_virtual"],
-			.downloadable-digital { display: none !important; }
+			.dokan-product-type-container { display: none !important; }
 
-			/* Product cover image / featured image uploader */
-			.dokan-feat-image-upload,
-			.dokan-product-featured-image,
-			.instruction-inside { display: none !important; }
+			/* Categoría */
+			.dokan-form-group:has(.dokan-new-cat-ui-title),
+			.dokan-form-group:has(.dokan-select-product-category-container),
+			.dokan-form-group:has(label[for="chosen_product_cat"]) { display: none !important; }
 
-			/* Brand taxonomy */
-			.dokan-form-group.dokan-product-brand-field,
-			.dokan-product-brand-box,
-			[class*="brand"] .dokan-form-group:has(select[name="product_brand"]),
-			label[for="product_brand"] { display: none !important; }
+			/* Product featured image (right side) */
+			.content-half-part.featured-image { display: none !important; }
 
-			/* Tags */
-			.dokan-form-group.dokan-product-tags-field,
-			.dokan-product-tags-box,
-			label[for="product_tag"] { display: none !important; }
+			/* Brand */
+			.dokan-form-group:has(#product_brand),
+			.dokan-form-group:has(.product_brand_search),
+			.dokan-form-group:has(label[for="product_brand"]) { display: none !important; }
 
-			/* Short description */
-			.dokan-form-group.dokan-product-short-description,
-			.dokan-product-short-desc,
-			label[for="post_excerpt"],
-			.dokan-form-group:has(textarea[name="post_excerpt"]) { display: none !important; }
+			/* Tags / Etiquetas */
+			.dokan-form-group:has(#product_tag_edit),
+			.dokan-form-group:has(.product_tag_search),
+			.dokan-form-group:has(label[for="product_tag_edit"]) { display: none !important; }
+
+			/* Short description / Descripción corta */
+			.dokan-product-short-description { display: none !important; }
 
 			/* Description / long description */
 			.dokan-product-description,
 			.dokan-product-description-field,
-			label[for="post_content"],
-			.dokan-form-group:has(textarea[name="post_content"]),
 			.dokan-form-group:has(#post_content) { display: none !important; }
 
 			/* Attributes and Variations */
@@ -183,9 +173,7 @@ class TCG_Dokan_Product_Form {
 			.dokan-product-variation-wrapper,
 			.dokan-attribute-variation-options,
 			#dokan-product-attribute,
-			#dokan-product-variation,
-			.dokan-section-heading:has(+ .dokan-product-attribute-wrapper),
-			.dokan-section-heading:has(+ .dokan-product-variation-wrapper) { display: none !important; }
+			#dokan-product-variation { display: none !important; }
 
 			/* RMA */
 			.dokan-rma-wrapper,
