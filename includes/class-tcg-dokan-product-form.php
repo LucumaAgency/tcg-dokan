@@ -19,6 +19,10 @@ class TCG_Dokan_Product_Form {
 		add_action( 'dokan_new_product_added', [ $this, 'save_fields' ], 10, 2 );
 		add_action( 'dokan_product_updated', [ $this, 'save_fields' ], 10, 2 );
 
+		// Hide unnecessary form sections via Dokan filters.
+		add_filter( 'dokan_product_edit_after_title', [ $this, 'hide_form_sections_css' ], 99 );
+		add_filter( 'dokan_new_product_form_after_title', [ $this, 'hide_form_sections_css' ], 99 );
+
 		// Enqueue assets.
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
 	}
@@ -127,6 +131,68 @@ class TCG_Dokan_Product_Form {
 				wp_set_object_terms( $product_id, $term_id, $tax );
 			}
 		}
+	}
+
+	/**
+	 * Inject CSS to hide unnecessary Dokan product form sections.
+	 */
+	public function hide_form_sections_css() {
+		?>
+		<style>
+			/* Downloadable / Virtual checkboxes */
+			.dokan-product-type-checkbox,
+			.dokan-downloadable-checkbox,
+			.dokan-virtual-checkbox,
+			label[for="dokan-is-downloadable"],
+			label[for="dokan-is-virtual"],
+			label[for="_downloadable"],
+			label[for="_virtual"],
+			.downloadable-digital { display: none !important; }
+
+			/* Product cover image / featured image uploader */
+			.dokan-feat-image-upload,
+			.dokan-product-featured-image,
+			.instruction-inside { display: none !important; }
+
+			/* Brand taxonomy */
+			.dokan-form-group.dokan-product-brand-field,
+			.dokan-product-brand-box,
+			[class*="brand"] .dokan-form-group:has(select[name="product_brand"]),
+			label[for="product_brand"] { display: none !important; }
+
+			/* Tags */
+			.dokan-form-group.dokan-product-tags-field,
+			.dokan-product-tags-box,
+			label[for="product_tag"] { display: none !important; }
+
+			/* Short description */
+			.dokan-form-group.dokan-product-short-description,
+			.dokan-product-short-desc,
+			label[for="post_excerpt"],
+			.dokan-form-group:has(textarea[name="post_excerpt"]) { display: none !important; }
+
+			/* Description / long description */
+			.dokan-product-description,
+			.dokan-product-description-field,
+			label[for="post_content"],
+			.dokan-form-group:has(textarea[name="post_content"]),
+			.dokan-form-group:has(#post_content) { display: none !important; }
+
+			/* Attributes and Variations */
+			.dokan-product-attribute-wrapper,
+			.dokan-product-variation-wrapper,
+			.dokan-attribute-variation-options,
+			#dokan-product-attribute,
+			#dokan-product-variation,
+			.dokan-section-heading:has(+ .dokan-product-attribute-wrapper),
+			.dokan-section-heading:has(+ .dokan-product-variation-wrapper) { display: none !important; }
+
+			/* RMA */
+			.dokan-rma-wrapper,
+			.dokan-product-rma,
+			#dokan-product-rma { display: none !important; }
+		</style>
+		<?php
 	}
 
 	/**
