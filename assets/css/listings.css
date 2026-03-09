@@ -133,6 +133,13 @@
    ========================================================================== */
 
 .tcg-add-to-cart {
+	font-family: 'Inter Tight', sans-serif;
+	font-size: 15px;
+	font-weight: 500;
+	color: #FFF;
+	border-radius: 8px;
+	padding-right: 20px;
+	padding-left: 20px;
 	cursor: pointer;
 	transition: background-color 0.2s, opacity 0.2s;
 }
@@ -192,8 +199,6 @@
 
 .tcg-vendors-table .tcg-add-to-cart {
 	white-space: nowrap;
-	padding: 6px 14px;
-	font-size: 0.85em;
 }
 
 /* Responsive: card layout on mobile
