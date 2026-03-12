@@ -18,6 +18,7 @@ class TCG_Dokan_Listings {
 		add_shortcode( 'tcg_buy_box', [ $this, 'render_shortcode_buy_box' ] );
 		add_shortcode( 'tcg_other_vendors', [ $this, 'render_shortcode_other_vendors' ] );
 		add_shortcode( 'tcg_card_price', [ $this, 'render_shortcode_card_price' ] );
+		add_shortcode( 'tcg_add_to_cart_btn', [ $this, 'render_shortcode_add_to_cart_btn' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
 	}
 
@@ -112,6 +113,41 @@ class TCG_Dokan_Listings {
 		return '<span class="tcg-card-price">'
 			. $best['price_html'] // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			. '</span>';
+	}
+
+	/**
+	 * [tcg_add_to_cart_btn] — Add-to-cart button for the best listing.
+	 * Works inside query loops of ygo_card (archives, grids, etc.).
+	 */
+	public function render_shortcode_add_to_cart_btn( $atts ) {
+		$atts = shortcode_atts( [
+			'label' => __( 'Agregar al carrito', 'tcg-dokan' ),
+		], $atts );
+
+		$card_id = get_the_ID();
+		if ( ! $card_id || get_post_type( $card_id ) !== 'ygo_card' ) {
+			return '';
+		}
+
+		$listings = $this->get_ranked_listings_for( $card_id );
+
+		if ( empty( $listings ) ) {
+			return '<span class="tcg-add-to-cart-btn tcg-add-to-cart-btn--empty">'
+				. esc_html__( 'No disponible', 'tcg-dokan' )
+				. '</span>';
+		}
+
+		$best  = $listings[0];
+		$nonce = wp_create_nonce( 'tcg_listings_nonce' );
+
+		// Ensure JS is loaded.
+		$this->enqueue_listings_js();
+
+		return '<button type="button" class="tcg-add-to-cart button alt"'
+			. ' data-product-id="' . esc_attr( $best['product_id'] ) . '"'
+			. ' data-nonce="' . esc_attr( $nonce ) . '">'
+			. esc_html( $atts['label'] )
+			. '</button>';
 	}
 
 	/* ------------------------------------------------------------------
@@ -418,26 +454,44 @@ class TCG_Dokan_Listings {
 			TCG_DOKAN_VERSION
 		);
 
-		// JS only on singles (add-to-cart functionality).
+		// JS on singles (always needed there).
 		if ( is_singular( 'ygo_card' ) ) {
-			wp_enqueue_script(
-				'tcg-listings',
-				TCG_DOKAN_URL . 'assets/js/listings.js',
-				[ 'jquery' ],
-				TCG_DOKAN_VERSION,
-				true
-			);
-
-			wp_localize_script( 'tcg-listings', 'tcgListings', [
-				'ajaxurl' => admin_url( 'admin-ajax.php' ),
-				'i18n'    => [
-					'adding'  => __( 'Agregando…', 'tcg-dokan' ),
-					'added'   => __( '¡Agregado!', 'tcg-dokan' ),
-					'error'   => __( 'Error al agregar', 'tcg-dokan' ),
-					'buy'     => __( 'Comprar', 'tcg-dokan' ),
-					'add'     => __( 'Agregar al carrito', 'tcg-dokan' ),
-				],
-			] );
+			$this->enqueue_listings_js();
 		}
+	}
+
+	/**
+	 * Enqueue listings JS + localize. Safe to call multiple times.
+	 */
+	public function enqueue_listings_js() {
+		if ( wp_script_is( 'tcg-listings', 'enqueued' ) ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'tcg-listings',
+			TCG_DOKAN_URL . 'assets/css/listings.css',
+			[],
+			TCG_DOKAN_VERSION
+		);
+
+		wp_enqueue_script(
+			'tcg-listings',
+			TCG_DOKAN_URL . 'assets/js/listings.js',
+			[ 'jquery' ],
+			TCG_DOKAN_VERSION,
+			true
+		);
+
+		wp_localize_script( 'tcg-listings', 'tcgListings', [
+			'ajaxurl' => admin_url( 'admin-ajax.php' ),
+			'i18n'    => [
+				'adding' => __( 'Agregando…', 'tcg-dokan' ),
+				'added'  => __( '¡Agregado!', 'tcg-dokan' ),
+				'error'  => __( 'Error al agregar', 'tcg-dokan' ),
+				'buy'    => __( 'Comprar', 'tcg-dokan' ),
+				'add'    => __( 'Agregar al carrito', 'tcg-dokan' ),
+			],
+		] );
 	}
 }
