@@ -132,9 +132,9 @@ class TCG_Dokan_Listings {
 		$listings = $this->get_ranked_listings_for( $card_id );
 
 		if ( empty( $listings ) ) {
-			return '<span class="tcg-add-to-cart-btn tcg-add-to-cart-btn--empty">'
+			return '<button type="button" class="tcg-add-to-cart button alt" disabled>'
 				. esc_html__( 'No disponible', 'tcg-dokan' )
-				. '</span>';
+				. '</button>';
 		}
 
 		$best  = $listings[0];
