@@ -2,13 +2,6 @@
    TCG Dokan — Vendor Dashboard Styling
    ========================================================================== */
 
-/* ─── CSS Variables ─── */
-
-:root {
-	--dokan-sidebar-background-color: #222;
-	--dokan-sidebar-text-color: #FFF;
-}
-
 /* ─── General ─── */
 
 .dokan-dashboard-wrap {
