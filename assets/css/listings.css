@@ -250,3 +250,10 @@
 		width: 100%;
 	}
 }
+
+/* Archive add-to-cart button (shortcode outside buy box / vendors table)
+   ========================================================================== */
+
+.tcg-add-to-cart:not(.tcg-buy-box .tcg-add-to-cart):not(.tcg-vendors-table .tcg-add-to-cart) {
+	width: 90%;
+}
