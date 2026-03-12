@@ -1,0 +1,309 @@
+/* ==========================================================================
+   TCG Dokan — Vendor Dashboard Styling
+   ========================================================================== */
+
+/* ─── General ─── */
+
+.dokan-dashboard-wrap {
+	font-family: 'Inter Tight', sans-serif;
+	color: #222;
+	background-color: #F8F8F8;
+}
+
+.dokan-dashboard-content {
+	background-color: #F8F8F8;
+}
+
+/* ─── Sidebar ─── */
+
+.dokan-dash-sidebar {
+	background-color: #222;
+}
+
+.dokan-dash-sidebar ul.dokan-dashboard-menu {
+	background-color: #222;
+}
+
+.dokan-dash-sidebar ul.dokan-dashboard-menu li a {
+	color: rgba(255, 255, 255, 0.7);
+	font-family: 'Inter Tight', sans-serif;
+	font-size: 14px;
+	font-weight: 400;
+	transition: color 0.15s, background-color 0.15s;
+}
+
+.dokan-dash-sidebar ul.dokan-dashboard-menu li a .fas,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li a .far,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li a .fa,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li a i {
+	color: rgba(255, 255, 255, 0.5);
+	transition: color 0.15s;
+}
+
+.dokan-dash-sidebar ul.dokan-dashboard-menu li:hover a,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li.active a {
+	color: #fff;
+}
+
+.dokan-dash-sidebar ul.dokan-dashboard-menu li:hover a .fas,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li:hover a .far,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li:hover a .fa,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li:hover a i,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li.active a .fas,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li.active a .far,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li.active a .fa,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li.active a i {
+	color: #fff;
+}
+
+.dokan-dash-sidebar ul.dokan-dashboard-menu li.active,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li:hover,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li.dokan-common-links a:hover {
+	background-color: #333;
+}
+
+.dokan-dash-sidebar ul.dokan-dashboard-menu li.active {
+	border-left: 3px solid #fff;
+}
+
+/* Submenu */
+.dokan-dash-sidebar ul.dokan-dashboard-menu li ul.dokan-dashboard-menu-submenu {
+	background-color: #1a1a1a;
+}
+
+.dokan-dash-sidebar ul.dokan-dashboard-menu li ul.dokan-dashboard-menu-submenu li a {
+	color: rgba(255, 255, 255, 0.6);
+	font-size: 13px;
+}
+
+.dokan-dash-sidebar ul.dokan-dashboard-menu li ul.dokan-dashboard-menu-submenu li a:hover,
+.dokan-dash-sidebar ul.dokan-dashboard-menu li ul.dokan-dashboard-menu-submenu li.active a {
+	color: #fff;
+}
+
+/* ─── Content Area ─── */
+
+.dokan-dashboard-content .dokan-dash-left,
+.dokan-dashboard-content .dokan-dash-right {
+	font-family: 'Inter Tight', sans-serif;
+}
+
+/* Dashboard widgets / stat boxes */
+.dokan-dashboard-content .dashboard-widget {
+	background: #fff;
+	border: 1px solid #e8e8e8;
+	border-radius: 8px;
+	box-shadow: none;
+}
+
+.dokan-dashboard-content .dashboard-widget h3,
+.dokan-dashboard-content .dashboard-widget .widget-title {
+	font-family: 'Inter Tight', sans-serif;
+	font-weight: 600;
+	color: #222;
+}
+
+/* Counter widgets */
+.dokan-dashboard-content .dokan-counter-box {
+	background: #fff;
+	border: 1px solid #e8e8e8;
+	border-radius: 8px;
+}
+
+/* ─── Headings ─── */
+
+.dokan-dashboard-content h1,
+.dokan-dashboard-content h2,
+.dokan-dashboard-content h3,
+.dokan-dashboard-content h4 {
+	font-family: 'Inter Tight', sans-serif;
+	color: #222;
+	font-weight: 600;
+}
+
+/* ─── Buttons ─── */
+
+input[type="submit"].dokan-btn-theme,
+a.dokan-btn-theme,
+.dokan-btn-theme {
+	font-family: 'Inter Tight', sans-serif;
+	font-size: 14px;
+	font-weight: 500;
+	background-color: #222;
+	border-color: #222;
+	color: #fff;
+	border-radius: 8px;
+	transition: background-color 0.2s, border-color 0.2s;
+}
+
+input[type="submit"].dokan-btn-theme:hover,
+a.dokan-btn-theme:hover,
+.dokan-btn-theme:hover,
+input[type="submit"].dokan-btn-theme:focus,
+a.dokan-btn-theme:focus,
+.dokan-btn-theme:focus,
+input[type="submit"].dokan-btn-theme:active,
+a.dokan-btn-theme:active,
+.dokan-btn-theme:active {
+	background-color: #333;
+	border-color: #333;
+	color: #fff;
+}
+
+input[type="submit"].dokan-btn-default,
+a.dokan-btn-default,
+.dokan-btn-default {
+	font-family: 'Inter Tight', sans-serif;
+	font-size: 14px;
+	font-weight: 500;
+	background-color: #fff;
+	border: 1px solid #ddd;
+	color: #222;
+	border-radius: 8px;
+	transition: background-color 0.2s, border-color 0.2s;
+}
+
+input[type="submit"].dokan-btn-default:hover,
+a.dokan-btn-default:hover,
+.dokan-btn-default:hover {
+	background-color: #F8F8F8;
+	border-color: #ccc;
+	color: #222;
+}
+
+input[type="submit"].dokan-btn-danger,
+a.dokan-btn-danger,
+.dokan-btn-danger {
+	font-family: 'Inter Tight', sans-serif;
+	border-radius: 8px;
+}
+
+/* ─── Tables ─── */
+
+.dokan-dashboard-content .dokan-table,
+.dokan-dashboard-content table.list-table {
+	font-family: 'Inter Tight', sans-serif;
+	background: #fff;
+	border-radius: 8px;
+	overflow: hidden;
+	border: 1px solid #e8e8e8;
+}
+
+.dokan-dashboard-content .dokan-table thead th,
+.dokan-dashboard-content table.list-table thead th {
+	background-color: #F8F8F8;
+	color: #222;
+	font-weight: 600;
+	font-size: 13px;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	border-bottom: 1px solid #e8e8e8;
+}
+
+.dokan-dashboard-content .dokan-table tbody td,
+.dokan-dashboard-content table.list-table tbody td {
+	color: #222;
+	font-size: 14px;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.dokan-dashboard-content .dokan-table tbody tr:hover,
+.dokan-dashboard-content table.list-table tbody tr:hover {
+	background-color: #fafafa;
+}
+
+/* ─── Forms ─── */
+
+.dokan-dashboard-content .dokan-form-control {
+	font-family: 'Inter Tight', sans-serif;
+	font-size: 14px;
+	color: #222;
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	transition: border-color 0.2s;
+}
+
+.dokan-dashboard-content .dokan-form-control:focus {
+	border-color: #222;
+	box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.1);
+	outline: none;
+}
+
+.dokan-dashboard-content .dokan-form-group label,
+.dokan-dashboard-content .form-label {
+	font-family: 'Inter Tight', sans-serif;
+	font-weight: 500;
+	color: #222;
+	font-size: 14px;
+}
+
+.dokan-dashboard-content select {
+	font-family: 'Inter Tight', sans-serif;
+	border-radius: 6px;
+	border: 1px solid #ddd;
+	color: #222;
+}
+
+/* ─── Status Labels ─── */
+
+.dokan-dashboard-content .dokan-label {
+	font-family: 'Inter Tight', sans-serif;
+	font-size: 12px;
+	font-weight: 500;
+	border-radius: 4px;
+}
+
+/* ─── Pagination ─── */
+
+.dokan-dashboard-content .dokan-pagination li a,
+.dokan-dashboard-content .dokan-pagination li span {
+	font-family: 'Inter Tight', sans-serif;
+	color: #222;
+	border-radius: 6px;
+}
+
+.dokan-dashboard-content .dokan-pagination li.active a,
+.dokan-dashboard-content .dokan-pagination li.active span {
+	background-color: #222;
+	border-color: #222;
+	color: #fff;
+}
+
+.dokan-dashboard-content .dokan-pagination li a:hover {
+	background-color: #F8F8F8;
+}
+
+/* ─── Alerts / Notices ─── */
+
+.dokan-dashboard-content .dokan-alert {
+	font-family: 'Inter Tight', sans-serif;
+	border-radius: 8px;
+}
+
+/* ─── Links ─── */
+
+.dokan-dashboard-content a {
+	color: #222;
+}
+
+.dokan-dashboard-content a:hover {
+	color: #555;
+}
+
+/* ─── Profile Progress Bar ─── */
+
+.dokan-dashboard-content .dokan-progress .dokan-progress-bar {
+	background-color: #222;
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 768px) {
+	.dokan-dash-sidebar {
+		background-color: #222;
+	}
+
+	.dokan-dashboard-content {
+		padding: 15px;
+	}
+}

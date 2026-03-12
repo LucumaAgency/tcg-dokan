@@ -11,6 +11,7 @@ class TCG_Dokan_Setup {
 		add_action( 'init', [ $this, 'ensure_taxonomies_on_product' ], 20 );
 		add_action( 'init', [ $this, 'register_product_meta' ], 20 );
 		add_filter( 'dokan_product_types', [ $this, 'limit_product_types' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_dashboard_styles' ] );
 	}
 
 	/**
@@ -49,5 +50,21 @@ class TCG_Dokan_Setup {
 		return [
 			'simple' => __( 'Simple Product', 'tcg-dokan' ),
 		];
+	}
+
+	/**
+	 * Enqueue dashboard styles on Dokan vendor dashboard pages.
+	 */
+	public function enqueue_dashboard_styles() {
+		if ( ! function_exists( 'dokan_is_seller_dashboard' ) || ! dokan_is_seller_dashboard() ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'tcg-dashboard',
+			TCG_DOKAN_URL . 'assets/css/dashboard.css',
+			[],
+			TCG_DOKAN_VERSION
+		);
 	}
 }
